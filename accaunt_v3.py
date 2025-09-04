@@ -14,9 +14,6 @@ client = TelegramClient('taxi_tolov_bot', api_id, api_hash)
 OBUNA_FILE = "obuna.json"
 BLOCK_FILE = "blocked.json"
 
-# 🚫 Faqat bir marta ogohlantirish uchun
-ogohlantirilganlar = set()
-
 # 📂 JSON o‘qish/yozish
 def load_json(filename):
     try:
@@ -45,8 +42,7 @@ def is_blocked(user_id):
         if end > datetime.now():
             return True
         else:
-            # ⏳ Muddati tugagan
-            del data[uid]
+            del data[uid]  # ⏳ blok muddati tugasa o‘chiriladi
             save_json(BLOCK_FILE, data)
     return False
 
@@ -66,7 +62,7 @@ async def check_block_expire():
                 save_json(BLOCK_FILE, data)
         await asyncio.sleep(3600)  # har 1 soatda tekshiradi
 
-# 📩 Oddiy xabarlar uchun handler
+# 📩 Guruhdagi xabarlarni kuzatish
 @client.on(events.NewMessage)
 async def handler(event):
     try:
@@ -109,32 +105,23 @@ async def handler(event):
         # ❌ Agar obunasiz foydalanuvchi reklama tashlasa
         if is_blocked_msg:
             try:
-                await event.delete()
+                await event.delete()  # guruhdan xabarini o‘chir
             except Exception as e:
                 print(f"❌ Xabar o‘chmadi: {e}")
 
-            # 🔔 Ogohlantirish faqat bir marta
-            if user_id_str not in ogohlantirilganlar:
-                ism = sender.first_name or "foydalanuvchi"
-                mention = f"<a href='tg://user?id={sender.id}'>{ism}</a>"
+            ism = sender.first_name or "foydalanuvchi"
+            javob = (
+                f"👋 Salom {ism}!\n\n"
+                f"📢 Guruhda e'lon qoldirish uchun sizga <b>obuna</b> kerak.\n\n"
+                f"👉 <a href='https://t.me/taxi_tolov_bot?start=start'>Obuna bo'lish</a>\n\n"
+                f"✅ Obunadan so‘ng bemalol e'lon joylashingiz mumkin."
+            )
 
-                javob = (
-                    f"👋 Salom {mention}!\n\n"
-                    f"📢 Guruhda e'lon qoldirish uchun sizga <b>obuna</b> kerak.\n\n"
-                    f"👉 <a href='https://t.me/taxi_tolov_bot?start=start'>Obuna bo'lish</a>\n\n"
-                    f"✅ Obunadan so‘ng bemalol e'lon joylashingiz mumkin."
-                )
-
-                # Guruhga yuborish
-                await client.send_message(event.chat_id, javob, parse_mode="html")
-
-                # Lichkaga yuborish
-                try:
-                    await client.send_message(PeerUser(sender.id), javob, parse_mode="html")
-                except:
-                    print(f"❌ {sender.id} lichkasi yopiq")
-
-                ogohlantirilganlar.add(user_id_str)
+            # 🔔 Har safar lichkasiga yuborilsin
+            try:
+                await client.send_message(PeerUser(sender.id), javob, parse_mode="html")
+            except:
+                print(f"❌ {sender.id} lichkasi yopiq")
 
     except Exception as e:
         print(f"⚠️ Umumiy xatolik: {e}")
