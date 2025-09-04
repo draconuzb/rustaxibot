@@ -8,7 +8,7 @@ from aiogram.filters import Command
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 # === TOKEN va ADMINLAR ===
-BOT_TOKEN = "YOUR_BOT_TOKEN"
+BOT_TOKEN = "7898788869:AAEJ95exK_eBhbT9_nULblyFJnZkgLLAyKE"
 ADMINS = [825063446, 6775888461, 5035706309]
 
 OBUNA_FILE = "obuna.json"
